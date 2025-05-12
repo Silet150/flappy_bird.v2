@@ -73,7 +73,7 @@ void pipeset(){
         pipe[i].topPipeY = rand() % (SCREENY - MINPIPESIZE + 1);
         pipe[i].botPipeY = pipe[i].topPipeY + PIPEYDISTANCE - MINPIPESIZE;
     }
-    pipe[0].x = SCREENX;
+    pipe[0].x = SCREENX - 300;
     for(int i = 1; i < PIPES; i++){
         pipe[i].x = pipe[i-1].x + PIPEWIDTH + PIPEXDISTANCE;
     }
@@ -100,8 +100,25 @@ void resetframe(HDC bgc){
     Rectangle(bgc, 0, 0, SCREENX, SCREENY);
 }
 
-void chek(){
-    
+bool check() {
+    for (int i = 0; i < PIPES; i++) {
+
+        if (pipe[i].x + PIPEWIDTH < bird.x - 10) continue;
+        if (pipe[i].x - 10 > bird.x + BIRDWIDTH) continue;
+
+        bool topHit = bird.x + BIRDWIDTH > pipe[i].x &&
+                      bird.x < pipe[i].x + PIPEWIDTH &&
+                      bird.y < pipe[i].topPipeY;
+
+        bool bottomHit = bird.x + BIRDWIDTH > pipe[i].x &&
+                         bird.x < pipe[i].x + PIPEWIDTH &&
+                         bird.y + BIRDHEIGHT > pipe[i].topPipeY + PIPEYDISTANCE;
+
+        if (topHit || bottomHit) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int main() {
@@ -124,23 +141,35 @@ int main() {
     ///////////////////////////////////////////////////////////////////////////////
     pipeset();
 
-    for(int i = 3; i > 0; i--){
-        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n");
-        printf("                                                        start: %d", i);
-        Sleep(1000);
-        system("cls");
-    }
+    Sleep(100);
+    TextOut(dc, 450, 240, "START: 3", lstrlen("START: 3"));
+    Sleep(1000);
+    system("cls");
+    TextOut(dc, 450, 240, "START: 2", lstrlen("START: 3"));
+    Sleep(1000);
+    system("cls");
+    TextOut(dc, 450, 240, "START: 1", lstrlen("START: 3"));
+    Sleep(1000);
+    
     while(1){
         piperender(dc);
         if (GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState('W') & 0x8000) {
             birdphysix(true);
         }   
         else birdphysix(false);
+
+        if(check()){
+            birdrender(brd);
+            TextOut(dc, 450, 240, "YOU DIE", lstrlen("YOU DIE"));
+            Sleep(5000);
+            return 0;
+        }
+
         birdrender(brd);
+
         Sleep(16);
         resetframe(bgc);
     }
-    ReleaseDC(hwnd, dc);
 
     return 0;
 }
